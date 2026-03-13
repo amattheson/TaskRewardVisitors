@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The Barter Ledger</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&display=swap" rel="stylesheet">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  body { 
+    background-color: #09090e; color: #e0e0f0; font-family: system-ui, -apple-system, sans-serif; 
+    margin: 0; padding: 20px; touch-action: manipulation;
+  }
+  h1 { 
+    font-family: 'Cinzel', serif;
+    font-size: 1.6rem;
+    text-align: center;
+    color: #ffffff; font-weight: 700; letter-spacing: 2px; border-bottom: 1px solid #2d244a; 
+    padding-bottom: 10px; text-shadow: 0 0 12px rgba(188, 19, 254, 0.6); text-transform: uppercase;
+  }
+  h2 { color: #bba2ff; font-weight: 400; font-size: 1.2rem; margin-top: 30px; border-bottom: 1px dashed #2d244a; padding-bottom: 5px; text-shadow: 0 0 8px rgba(187, 162, 255, 0.3); }
+  
+  .card { 
+    background: #11111a; padding: 15px; border-radius: 8px; margin-bottom: 15px; 
+    border: 1px solid #2a2244; position: relative;
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.05);
+  }
+  
+  .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .task-name { font-size: 1rem; color: #d5d6e2; }
+  .balance-display { font-size: 1.5rem; font-weight: bold; color: #fff; min-width: 30px; text-align: center; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+  
+  .btn { 
+    background: #1a1a2e; color: #fff; border: 1px solid #444; padding: 10px 15px; 
+    border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: bold;
+    flex: 1; margin: 0 5px; transition: all 0.2s ease; text-align: center;
+  }
+  
+  .btn-green { background: rgba(0, 136, 255, 0.1); border-color: #0088ff; color: #80c4ff; }
+  .btn-green:active { background: #0088ff; color: #fff; box-shadow: 0 0 15px #0088ff; }
+  
+  .btn-red { background: rgba(255, 0, 128, 0.1); border-color: #ff0080; color: #ff80c0; }
+  .btn-red:active { background: #ff0080; color: #fff; box-shadow: 0 0 15px #ff0080; }
+  
+  .btn-scrap {
+    background: transparent; border: 1px solid rgba(255, 0, 128, 0.5); color: #ff80c0; padding: 4px 10px; 
+    border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease;
+  }
+  .btn-scrap:hover, .btn-scrap:active { background: rgba(255, 0, 128, 0.2); box-shadow: 0 0 8px rgba(255, 0, 128, 0.6); color: #fff; }
+
+  .progress-bar { 
+    background: #09090e; border-radius: 4px; height: 12px; width: 100%; margin: 15px 0; 
+    overflow: hidden; border: 1px solid #2d244a; box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
+  }
+  .progress-fill { 
+    background: linear-gradient(90deg, #0088ff, #ff0080); 
+    height: 100%; width: 0%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+    box-shadow: 0 0 12px rgba(255, 0, 128, 0.6);
+  }
+  
+  .input-group { display: flex; gap: 10px; margin-bottom: 10px; }
+  input { 
+    background: #09090e; border: 1px solid #2d244a; color: #e0e0f0; padding: 10px; 
+    border-radius: 6px; width: 100%; font-size: 1rem; box-sizing: border-box; transition: all 0.2s;
+  }
+  input:focus { outline: none; border-color: #0088ff; box-shadow: 0 0 8px rgba(0, 136, 255, 0.4); }
+</style>
+</head>
+<body>
+
+  <h1>The Barter Ledger</h1>
+
+  <h2>Capital Liquidation</h2>
+  <div class="card">
+    <div class="flex-between">
+      <span class="task-name">Save $300 to unlock $100 spending</span>
+      <span style="color: #7ab4ff; font-weight: bold; text-shadow: 0 0 5px rgba(0, 136, 255, 0.4);">$<span id="savings-current">0</span> <span style="color: #555;">/ $300</span></span>
+    </div>
+    
+    <div class="progress-bar">
+      <div class="progress-fill" id="savings-bar"></div>
+    </div>
+    
+    <div class="flex-between" style="margin: 0 -5px;">
+      <button class="btn btn-green" onclick="addSavings(5)">+$5</button>
+      <button class="btn btn-green" onclick="addSavings(10)">+$10</button>
+      <button class="btn btn-green" onclick="addSavings(20)">+$20</button>
+    </div>
+    
+    <div class="input-group" style="margin-top: 10px;">
+      <input type="number" id="custom-savings" placeholder="Custom Amount">
+      <button class="btn btn-green" style="margin: 0;" onclick="injectCustomSavings()">Inject</button>
+    </div>
+    
+    <button class="btn btn-red" id="claim-savings-btn" style="display:none; width: 100%; margin: 15px 0 0 0;" onclick="claimSavings()">Claim $100 & Reset</button>
+    
+    <div class="flex-between" style="margin-top: 20px; border-top: 1px solid #2d244a; padding-top: 15px;">
+      <div style="color: #00e5ff; font-size: 1.1rem; font-weight: bold; text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);">
+        Fun Money: $<span id="liquid-cash">0</span>
+      </div>
+      <button class="btn btn-red" style="flex: 0 1 auto; padding: 6px 12px; font-size: 0.8rem;" onclick="spendLiquid(10)">Spend $10</button>
+    </div>
+    <div style="margin-top: 8px; text-align: left; color: #bba2ff; font-size: 0.85rem; text-shadow: 0 0 5px rgba(187, 162, 255, 0.2);">
+      Lifetime Capital Saved: $<span id="lifetime-saved">0</span>
+    </div>
+  </div>
+
+  <h2>Active Contracts</h2>
+  <div id="contracts-container"></div>
+
+  <h2>Forge New Contract</h2>
+  <div class="card" style="border-color: #2d244a;">
+    <div class="input-group">
+      <input type="text" id="new-task" placeholder="The Chore (e.g., Mow Lawn)">
+      <input type="text" id="new-reward" placeholder="The Reward (e.g., 1 Hour Gaming)">
+    </div>
+    <div class="input-group">
+      <input type="number" id="new-earn" placeholder="Earn amount" value="1" style="width: 50%;">
+      <input type="number" id="new-cost" placeholder="Claim cost" value="1" style="width: 50%;">
+    </div>
+    <button class="btn btn-green" style="width: 100%; margin: 0;" onclick="createContract()">Lock It In</button>
+  </div>
+
+<script>
+  let savedCapital = parseInt(localStorage.getItem('vantaSaved')) || 0;
+  let liquidCash = parseInt(localStorage.getItem('vantaLiquid')) || 0;
+  let lifetimeSaved = parseInt(localStorage.getItem('vantaLifetime')) || 0;
+  const savingTarget = 300;
+
+  function updateFinancials() {
+    document.getElementById('savings-current').innerText = savedCapital;
+    document.getElementById('liquid-cash').innerText = liquidCash;
+    document.getElementById('lifetime-saved').innerText = lifetimeSaved;
+    let percent = Math.min((Math.max(savedCapital, 0) / savingTarget) * 100, 100);
+    document.getElementById('savings-bar').style.width = percent + '%';
+    
+    if (savedCapital >= savingTarget) {
+      document.getElementById('claim-savings-btn').style.display = 'block';
+    } else {
+      document.getElementById('claim-savings-btn').style.display = 'none';
+    }
+  }
+
+  function addSavings(amount) {
+    savedCapital += amount;
+    lifetimeSaved += amount;
+    localStorage.setItem('vantaSaved', savedCapital);
+    localStorage.setItem('vantaLifetime', lifetimeSaved);
+    updateFinancials();
+  }
+
+  function injectCustomSavings() {
+    let inputField = document.getElementById('custom-savings');
+    let amount = parseInt(inputField.value);
+    if (!isNaN(amount)) {
+      addSavings(amount);
+      inputField.value = ''; 
+    }
+  }
+
+  function claimSavings() {
+    if (savedCapital >= savingTarget) {
+      savedCapital -= savingTarget;
+      liquidCash += 100; 
+      localStorage.setItem('vantaSaved', savedCapital);
+      localStorage.setItem('vantaLiquid', liquidCash);
+      updateFinancials();
+    }
+  }
+
+  function spendLiquid(amount) {
+    if (liquidCash >= amount) {
+      liquidCash -= amount;
+      localStorage.setItem('vantaLiquid', liquidCash);
+      updateFinancials();
+    }
+  }
+
+  let defaultContracts = [
+    { id: 'c1', task: 'Complete Workout', reward: 'Massage', balance: 0, earnRate: 1, costRate: 1 },
+    { id: 'c2', task: 'Morning Tea & Protein Lunch', reward: 'Liquor (oz)', balance: 0, earnRate: 4, costRate: 1 }
+  ];
+
+  let contracts = defaultContracts;
+  
+  try {
+    let storedData = localStorage.getItem('vantaContracts');
+    if (storedData) {
+      let parsed = JSON.parse(storedData);
+      if (Array.isArray(parsed)) {
+        contracts = parsed;
+      }
+    }
+  } catch (e) {
+    console.error("Corrupted memory detected. Defaulting to clean slate.");
+  }
+
+  function saveContracts() {
+    localStorage.setItem('vantaContracts', JSON.stringify(contracts));
+    renderContracts();
+  }
+
+  function renderContracts() {
+    const container = document.getElementById('contracts-container');
+    container.innerHTML = '';
+
+    contracts.forEach((contract, index) => {
+      let earn = contract.earnRate || 1;
+      let cost = contract.costRate || 1;
+      let bal = contract.balance || 0;
+      let taskName = contract.task || "Unknown Task";
+      let rewardName = contract.reward || "Reward";
+
+      container.innerHTML += `
+        <div class="card">
+          <div class="flex-between" style="border-bottom: 1px solid #2d244a; padding-bottom: 8px; margin-bottom: 12px;">
+            <span style="color: #bba2ff; font-size: 0.9rem;">${taskName} <span style="color: #555;">=</span> ${earn} ${rewardName}</span>
+            <button class="btn-scrap" onclick="deleteContract(${index})">Scrap</button>
+          </div>
+          <div class="flex-between">
+            <button class="btn btn-green" onclick="modifyBalance(${index}, ${earn})">Completed Task</button>
+            <span class="balance-display">${bal}</span>
+            <button class="btn btn-red" onclick="modifyBalance(${index}, -${cost})">Claim Reward</button>
+          </div>
+          <div style="text-align: center; margin-top: 8px; color: #7ab4ff; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+            Inventory: ${rewardName}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function modifyBalance(index, amount) {
+    let currentBal = contracts[index].balance || 0;
+    if (currentBal + amount >= 0) {
+      contracts[index].balance = currentBal + amount;
+      saveContracts();
+    }
+  }
+
+  function deleteContract(index) {
+    if (confirm("Are you sure you want to scrap this contract permanently?")) {
+      contracts.splice(index, 1);
+      saveContracts();
+    }
+  }
+
+  function createContract() {
+    let task = document.getElementById('new-task').value;
+    let reward = document.getElementById('new-reward').value;
+    let earn = parseInt(document.getElementById('new-earn').value) || 1;
+    let cost = parseInt(document.getElementById('new-cost').value) || 1;
+
+    if (task && reward) {
+      contracts.push({ id: Date.now().toString(), task: task, reward: reward, balance: 0, earnRate: earn, costRate: cost });
+      saveContracts();
+      
+      document.getElementById('new-task').value = '';
+      document.getElementById('new-reward').value = '';
+      document.getElementById('new-earn').value = '1';
+      document.getElementById('new-cost').value = '1';
+    }
+  }
+
+  updateFinancials();
+  renderContracts();
+</script>
+</body>
+</html>
